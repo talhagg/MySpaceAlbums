@@ -14,7 +14,6 @@ final class MainView : UIView {
     
     weak var delegate: AlbumListViewDelegate?
     
-    var fullList : [AlbumPresentation] = []
     var albumList : [AlbumPresentation] = []
     var filterList : [AlbumPresentation] = []
     
@@ -27,8 +26,7 @@ final class MainView : UIView {
 extension MainView : AlbumListViewProtocol {
     func updateAlbums(_ albumList: [AlbumPresentation]) {
         self.albumList = albumList
-        self.filterList.append(contentsOf: albumList)
-        self.fullList = albumList
+        self.filterList = albumList
         tableView.reloadData()
     }
 }
@@ -47,7 +45,7 @@ extension MainView : UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return fullList.count
+        return albumList.count
     }
     
 }
@@ -61,18 +59,21 @@ extension MainView: UITableViewDelegate {
 
 extension MainView : UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        filterList = searchText.isEmpty ? albumList : albumList.filter({ albums in
-            return albums.albumName.range(of: searchText,options: .caseInsensitive) != nil
-        })
-        
-        fullList.removeAll(keepingCapacity: false)
-        
-        for i in 0..<filterList.count {
-            if i < 50 {
-                fullList.append(contentsOf: filterList)
-            }
-            
+     
+        if searchText.isEmpty {
+            albumList = filterList
+        } else {
+            albumList = filterList.filter({ albums in
+                if albums.albumName.range(of: searchText, options: .caseInsensitive) != nil {
+                    return true
+                } else if albums.singerName.range(of: searchText, options: .caseInsensitive) != nil {
+                    return true
+                } else {
+                    return false
+                }
+            })
         }
+     
         
         tableView.reloadData()
     }
